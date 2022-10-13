@@ -1,8 +1,5 @@
+library social_auth;
 
-import 'social_auth_platform_interface.dart';
-
-class SocialAuth {
-  Future<String?> getPlatformVersion() {
-    return SocialAuthPlatform.instance.getPlatformVersion();
-  }
-}
+export 'src/github/github_sign_in.helper.dart';
+export 'src/social_auth_user.dart';
+export 'src/exception.dart';

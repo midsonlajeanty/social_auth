@@ -1,4 +1,4 @@
-package com.example.social_auth
+package me.louismidson.social_auth
 
 import androidx.annotation.NonNull
 
