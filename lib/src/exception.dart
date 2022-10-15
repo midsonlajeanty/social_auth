@@ -1,9 +1,9 @@
 class AuthenticationCanceled implements Exception{
-  final String? message;
-  AuthenticationCanceled({this.message});
+  final String message;
+  AuthenticationCanceled({this.message = "Authentication Canceled"});
 }
 
 class AuthenticationError implements Exception{
-  final String error;
-  AuthenticationError(this.error);
+  final dynamic errors;
+  AuthenticationError(this.errors);
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:social_auth/src/social_auth_user.dart';
@@ -21,7 +20,7 @@ class GitHubSignInHelper{
     this.scope = "read:user",
   });
 
-  Future signIn(BuildContext context) async {
+  Future<SocialAuthUser> signIn(BuildContext context) async {
     final authCode = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => GithubSignInScreen(url: _buildAuthorizeUrl)
@@ -34,16 +33,10 @@ class GitHubSignInHelper{
       throw AuthenticationError(authCode.toString());
     } else {
       final authCredentials = await _getAccessToken(authCode as String);
-      final user = await _getUserInfo(authCredentials);
 
-      return SocialAuthUser(
-        id: user['id'],
-        fullname: user['name'],
-        email: user['email'] ?? "",
-        username: user['login'],
-        profileUrl: user['avatar_url'],
-        token: authCredentials['access_token'],
-      );
+      final account = await _getAccountInfo(authCredentials);
+
+      return SocialAuthUser.fromGithubAccount(account);
     }
   }
 
@@ -64,7 +57,7 @@ class GitHubSignInHelper{
     }
   }
 
-  Future<Map> _getUserInfo(Map credentials) async {
+  Future<Map> _getAccountInfo(Map credentials) async {
     final response = await http.get(
       Uri.parse(Constants.gitHubUserURL),
       headers: {

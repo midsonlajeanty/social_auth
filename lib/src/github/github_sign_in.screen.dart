@@ -19,29 +19,35 @@ class _GithubSignInScreenState extends State<GithubSignInScreen> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("github.com"),
+      ),
       body: Stack(
         children: [
           WebView(
             initialUrl: widget.url,
             javascriptMode: JavascriptMode.unrestricted,
-            backgroundColor: Theme.of(context).backgroundColor,
             onWebViewCreated: (WebViewController webViewController) {
               _controller.complete(webViewController);
             },
             onPageFinished: (url)=> setState(()=> loading = false),
             navigationDelegate: (NavigationRequest request) {
-              if (Uri.parse(request.url).queryParameters['code'] != null){
+              final url = Uri.parse(request.url);
+              
+              if (url.queryParameters['code'] != null){
                 Navigator.of(context).pop(
-                  Uri.parse(request.url).queryParameters['code']
+                  url.queryParameters['code']
                 );
                 return NavigationDecision.prevent;
               }
-              if (Uri.parse(request.url).queryParameters['error'] != null){
+
+              if (url.queryParameters['error'] != null){
                 Navigator.of(context).pop(
-                  Exception(Uri.parse(request.url).queryParameters['error_description'])
+                  Exception(url.queryParameters)
                 );
                 return NavigationDecision.prevent;
               }
+
               return NavigationDecision.navigate;
             },
           ),
