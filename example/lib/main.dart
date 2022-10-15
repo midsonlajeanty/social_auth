@@ -32,9 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _signInWithGithub() async {
     GitHubSignInHelper gitHubSignInHelper = GitHubSignInHelper(
-      clientId: "84fd07a806476b43e1bd",
-      clientSecret: "e494aa6a0d92447374a8c695e47f69aa250964fc",
-      redirectUrl: "http://louismidson.me",
+      clientId: "CLIENT_ID",
+      clientSecret: "CLIENT_SECRET",
+      redirectUrl: "REDIRECT_URL",
     );
 
     try{
