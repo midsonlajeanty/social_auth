@@ -32,21 +32,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _signInWithGithub() async {
     GitHubSignInHelper gitHubSignInHelper = GitHubSignInHelper(
-      clientId: "YOUR_CLIENT_ID",
-      clientSecret: "YOUR_CLIENT_SECRET",
-      redirectUrl: "YOUR_REDIRECT_URL",
+      clientId: "CLIENT_ID",
+      clientSecret: "CLIENT_SECRET",
+      redirectUrl: "REDIRECT_URL",
     );
 
     try{
       SocialAuthUser user = await gitHubSignInHelper.signIn(context);
-      jumpToProfilePage(user);
-    }catch(e){
+      signIn(user);
+    } on AuthenticationCanceled catch(e){
       // ignore: avoid_print
-      print(e.toString());
+      print(e.message);
+    } on AuthenticationError catch(e){
+      // ignore: avoid_print
+      print("Errors : ${e.errors}");
     }
   }
 
-  void jumpToProfilePage(SocialAuthUser user){
+  Future<void> _signInWithGoogle() async {
+    GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
+    try{
+      SocialAuthUser user = await googleSignInHelper.signIn();
+      signIn(user);
+    } on AuthenticationCanceled catch(e){
+      // ignore: avoid_print
+      print(e.message);
+    } on AuthenticationError catch(e){
+      // ignore: avoid_print
+      print("Errors : ${e.errors}");
+    }
+  }
+
+  void signIn(SocialAuthUser user){
     Navigator.push(context,
       MaterialPageRoute(
         builder: (context) => ProfileScreen(user: user)
@@ -67,6 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ElevatedButton(
               child: const Text('Sign in with GitHub'),
               onPressed: () => _signInWithGithub(),
+            ),
+            ElevatedButton(
+              child: const Text('Sign in with Google'),
+              onPressed: () => _signInWithGoogle(),
             ),
           ]
         )
@@ -112,7 +133,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Text(user.fullname, style: const TextStyle(fontSize: 20)),
             const SizedBox(height: 10),
-            Text(user.email),
+            Text(user.email ?? "Unknown", style: const TextStyle(fontSize: 16)),
           ]
         )
       )
