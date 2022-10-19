@@ -11,13 +11,13 @@ class GitHubSignInHelper{
   final String clientId;
   final String clientSecret;
   final String redirectUrl;
-  final String scope;
+
+  final String scope = "read:user,user:email";
 
   GitHubSignInHelper({
     required this.clientId,
     required this.clientSecret,
     required this.redirectUrl,
-    this.scope = "read:user",
   });
 
   Future<SocialAuthUser> signIn(BuildContext context) async {
@@ -31,16 +31,28 @@ class GitHubSignInHelper{
       throw AuthenticationCanceled();
     } else if (authCode is Exception) {
       throw AuthenticationError(authCode.toString());
-    } else {
-      final authCredentials = await _getAccessToken(authCode as String);
-
-      final account = await _getAccountInfo(authCredentials);
-
-      return SocialAuthUser.fromGithubAccount(account);
     }
+
+    final auth = await getAccessToken(authCode as String);
+
+    final account = await request(Constants.gitHubUserProfilURL, auth: auth);
+
+    if(account['email'] == null){
+      final emails = await request(Constants.gitHubUserEmailURL, auth: auth);
+
+      final emailMap = emails.firstWhere((map) => map['primary'] && map['verified']);
+
+      if(emailMap != null){
+        account['email'] = emailMap['email'];
+      }else{
+        throw Exception("Sorry, account have not verified email address"); 
+      }
+    }
+
+    return SocialAuthUser.fromGithubAccount(account);
   }
 
-  Future<Map> _getAccessToken(String code) async {
+  Future<Map> getAccessToken(String code) async {
     final response = await http.post(
       Uri.parse(Constants.gitHubAccessTokenURL),
       headers: {'Accept': 'application/json',},
@@ -50,6 +62,7 @@ class GitHubSignInHelper{
         'code': code,
       },
     );
+    
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -57,20 +70,23 @@ class GitHubSignInHelper{
     }
   }
 
-  Future<Map> _getAccountInfo(Map credentials) async {
+  Future<dynamic> request(String url, {Map? auth}) async {
+    final headers = {'Accept': 'application/json',};
+    if (auth != null){
+      headers['Authorization'] = "${auth['token_type']} ${auth['access_token']}";
+    }
+
     final response = await http.get(
-      Uri.parse(Constants.gitHubUserURL),
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': "${credentials['token_type']} ${credentials['access_token']}"
-      },
+      Uri.parse(url),
+      headers: headers,
     );
+
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else if (response.statusCode == 401){
       throw Exception('Unauthorize');
     }else {
-      throw Exception('Failed to get user info');
+      throw Exception('Failed to get GRithub User Info');
     }
   }
 
